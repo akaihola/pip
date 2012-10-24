@@ -221,8 +221,16 @@ class InstallCommand(Command):
             force_reinstall=options.force_reinstall,
             use_user_site=options.use_user_site)
         for name in args:
-            requirement_set.add_requirement(
-                InstallRequirement.from_line(name, None))
+            try:
+                requirement_set.add_requirement(
+                    InstallRequirement.from_line(name, None))
+            except ValueError, exc:
+                if not options.requirements and os.path.isfile(name):
+                    raise InstallationError(
+                        '%r\n'
+                        '%r looks like a path to an existing file.\n'
+                        'Did you forget the -r/--requirement parameter?'
+                        % (exc, name))
         for name in options.editables:
             requirement_set.add_requirement(
                 InstallRequirement.from_editable(name, default_vcs=options.default_vcs))
